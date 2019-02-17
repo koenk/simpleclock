@@ -17,7 +17,8 @@ def main():
     parser = argparse.ArgumentParser(description='Control SimpleClock via UART')
     parser.add_argument('-p', '--port', nargs=1, default=DEFAULT_PORT)
     parser.add_argument('-b', '--baud', nargs=1, default=DEFAULT_BAUD)
-    parser.add_argument('action', choices=('set-time', 'get-time', 'get-temp'))
+    parser.add_argument('action',
+            choices=('set-time', 'get-time', 'get-temp', 'get-version'))
     args = parser.parse_args()
 
     cmd = b''
@@ -28,6 +29,8 @@ def main():
         cmd = b'get'
     elif args.action == 'get-temp':
         cmd = b'temp'
+    elif args.action == 'get-version':
+        cmd = b'version'
 
     communicate(cmd, args.port, args.baud)
 

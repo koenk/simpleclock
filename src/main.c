@@ -13,6 +13,10 @@
 #include "rtc.h"
 #include "display.h"
 
+/* Set by makefile based on git version. */
+#ifndef VERSION
+# define VERSION "undef"
+#endif
 
 void init(void)
 {
@@ -38,7 +42,11 @@ void handle_command(char *msg)
     } else if (!strcmp(msg, "temp")) {
         rtc_read_temp(&temp);
         LOG("Temperature %d.%u C", temp.temp, temp.fraction);
+    } else if (!strncmp(msg, "ver", 3)) {
+        _delay_ms(10);
+        LOG("Version %s", VERSION);
     } else {
+        _delay_ms(10);
         LOG("Unknown command \"%s\"", msg);
     }
 }
