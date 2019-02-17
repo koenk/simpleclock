@@ -17,20 +17,28 @@ def main():
     parser = argparse.ArgumentParser(description='Control SimpleClock via UART')
     parser.add_argument('-p', '--port', nargs=1, default=DEFAULT_PORT)
     parser.add_argument('-b', '--baud', nargs=1, default=DEFAULT_BAUD)
-    parser.add_argument('action',
-            choices=('set-time', 'get-time', 'get-temp', 'get-version'))
+    subparsers = parser.add_subparsers(help='Command', dest='command')
+    subparsers.required = True
+    subparsers.add_parser('set-time')
+    subparsers.add_parser('get-time')
+    subparsers.add_parser('get-temp')
+    subparsers.add_parser('get-version')
+    subparsers.add_parser('set-brightness').add_argument('brightness', type=int)
+
     args = parser.parse_args()
 
     cmd = b''
-    if args.action == 'set-time':
+    if args.command == 'set-time':
         curtime = time.strftime('%H:%M:%S')
         cmd = b'set ' + curtime.encode('utf-8')
-    elif args.action == 'get-time':
+    elif args.command == 'get-time':
         cmd = b'get'
-    elif args.action == 'get-temp':
+    elif args.command == 'get-temp':
         cmd = b'temp'
-    elif args.action == 'get-version':
+    elif args.command == 'get-version':
         cmd = b'version'
+    elif args.command == 'set-brightness':
+        cmd = b'brightness %d' % args.brightness
 
     communicate(cmd, args.port, args.baud)
 

@@ -142,7 +142,7 @@ void display_setsegs(u8 segs[DISPLAY_NUM_DIGITS], u8 brightness)
     end_command();
 
     start_command();
-    write_byte(COMM3 | (brightness & 0xf) | DISP_ON);
+    write_byte(COMM3 | (brightness & 0x7) | DISP_ON);
     end_command();
 }
 

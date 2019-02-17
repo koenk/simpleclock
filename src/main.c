@@ -18,6 +18,8 @@
 # define VERSION "undef"
 #endif
 
+static u8 display_brightness = 1; /* 0..7 */
+
 void init(void)
 {
     DDRA = 0;
@@ -39,6 +41,10 @@ void handle_command(char *msg)
         rtc_write_time_from_string(&msg[4]);
         rtc_read_time(&time);
         LOG("Current time %02u:%02u:%02u", time.hour, time.min, time.sec);
+    } else if (!strncmp(msg, "brightness ", 11)) {
+        _delay_ms(10);
+        display_brightness = atoi(&msg[11]) & 0x7;
+        LOG("Brightness %u/7", display_brightness);
     } else if (!strcmp(msg, "temp")) {
         rtc_read_temp(&temp);
         LOG("Temperature %d.%u C", temp.temp, temp.fraction);
@@ -76,6 +82,6 @@ int main(void)
 
         rtc_read_time(&time);
         if (time.min != old_min)
-            display_shownum(time.hour * 100 + time.min, 1, 4);
+            display_shownum(time.hour * 100 + time.min, 1, display_brightness);
     }
 }
