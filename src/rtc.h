@@ -19,7 +19,8 @@ void rtc_init(void);
 void rtc_read_temp(struct rtc_temp *ret);
 void rtc_write_time(struct rtc_time *time);
 void rtc_write_time_from_string(const char *s);
-
 void rtc_read_time(struct rtc_time *ret);
+void rtc_enable_notifier(void);
+void rtc_notifier_handled(void);
 
 #endif

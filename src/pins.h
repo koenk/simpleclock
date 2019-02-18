@@ -15,7 +15,10 @@
 #define PIN_UART_RX 1
 #define PIN_UART_TX 2
 
-#define PIN_LED1 4
+#define PIN_RTC_INT 4 /* INT1 */
+
+#define PIN_LED1 9
+#define PIN_LED2 10
 
 #define PIN_ISP_MISO 3
 #define PIN_ISP_MOSI 7

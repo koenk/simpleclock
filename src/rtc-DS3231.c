@@ -3,6 +3,7 @@
 
 #include "rtc.h"
 #include "twi.h"
+#include "uart.h"
 
 #define TWI_ADDR 0x68
 
@@ -29,9 +30,19 @@
 #define REG_TEMPI           0x11
 #define REG_TEMPF           0x12
 
+#define INTCN 2
+#define A2IE 1
+#define A1IE 0
+
+#define A1F 0
 
 void rtc_init(void)
 {
+    /* Disable square wave signal and alarm interrupts */
+    twi_start(TWI_ADDR, false);
+    twi_write(REG_CONTROL);
+    twi_write(1<<INTCN);
+    twi_stop();
 }
 
 static inline u8 bcd_decode(u8 bcd)
@@ -102,3 +113,40 @@ void rtc_read_temp(struct rtc_temp *ret)
     ret->fraction = (tempf >> 6) * 25;
 }
 
+
+void rtc_enable_notifier(void)
+{
+    twi_start(TWI_ADDR, false);
+    twi_write(REG_ALARM1_SEC);
+    twi_write(0x00); /* Match on seconds = 0 */
+    twi_write(0x80); /* Ignore minutes */
+    twi_write(0x80); /* Ignore hours */
+    twi_write(0x80); /* Ignore date */
+    twi_stop();
+
+    /* Enable alarm0 interrupts */
+    twi_start(TWI_ADDR, false);
+    twi_write(REG_CONTROL);
+    twi_write(1<<INTCN | 1<<A1IE);
+    twi_stop();
+
+    rtc_notifier_handled();
+}
+
+void rtc_notifier_handled(void)
+{
+    u8 sts;
+
+    twi_start(TWI_ADDR, false);
+    twi_write(REG_STATUS);
+    twi_start(TWI_ADDR, true);
+    sts = twi_read(true);
+    twi_stop();
+
+    sts &= ~(1<<A1F);
+
+    twi_start(TWI_ADDR, false);
+    twi_write(REG_STATUS);
+    twi_write(sts);
+    twi_stop();
+}

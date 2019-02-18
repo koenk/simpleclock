@@ -5,6 +5,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <avr/sleep.h>
 
 #include "types.h"
 #include "pins.h"
@@ -28,6 +29,19 @@ void init(void)
     PORTB = 0;
 
     pin_set_mode(PIN_LED1, OUTPUT);
+    pin_set_mode(PIN_LED2, OUTPUT);
+
+    pin_set_mode(PIN_RTC_INT, INPUT);
+
+    EICRA = 1<<ISC11 | 0 << ISC10; /* INT1 falling edge */
+    EIMSK = 1<<INT1; /* Enable external INT1 */
+}
+
+void update_display_time(void)
+{
+    struct rtc_time time;
+    rtc_read_time(&time);
+    display_shownum(time.hour * 100 + time.min, 1, display_brightness);
 }
 
 void handle_command(char *msg)
@@ -40,6 +54,7 @@ void handle_command(char *msg)
     } else if (!strncmp(msg, "set ", 4)) {
         rtc_write_time_from_string(&msg[4]);
         rtc_read_time(&time);
+        update_display_time();
         LOG("Current time %02u:%02u:%02u", time.hour, time.min, time.sec);
     } else if (!strncmp(msg, "brightness ", 11)) {
         _delay_ms(10);
@@ -59,29 +74,30 @@ void handle_command(char *msg)
 
 int main(void)
 {
-    struct rtc_time time;
-    u8 old_min = 99;
-
     init();
     uart_init();
     uart_set_recv_callback(handle_command);
     twi_init();
     rtc_init();
+    rtc_enable_notifier();
     display_init();
 
     uart_puts("*** Simpleclock initialized\r\n");
+    _delay_ms(1000);
+    update_display_time();
 
     sei();
 
     while (1) {
-        pin_write(PIN_LED1, 0);
-        _delay_ms(1000);
-
-        pin_write(PIN_LED1, 1);
-        _delay_ms(1000);
-
-        rtc_read_time(&time);
-        if (time.min != old_min)
-            display_shownum(time.hour * 100 + time.min, 1, display_brightness);
+        sleep_mode();
+        _delay_ms(10);
     }
+}
+
+ISR(INT1_vect)
+{
+    cli();
+    rtc_notifier_handled();
+    update_display_time();
+    sei();
 }
