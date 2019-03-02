@@ -155,7 +155,7 @@ void display_shownum(u16 num, bool colon, u8 brightness)
         u8 digit = num % 10;
         segs[pos] = segment_lut[digit];
 
-        if (colon && pos == 1)
+        if (colon && (pos == 2 || pos == 3))
             segs[pos] |= 0x80;
         num /= 10;
     }

@@ -41,7 +41,7 @@ void update_display_time(void)
 {
     struct rtc_time time;
     rtc_read_time(&time);
-    display_shownum(time.hour * 100 + time.min, 1, display_brightness);
+    display_shownum(time.hour * 100 + time.min, true, display_brightness);
 }
 
 void handle_command(char *msg)
