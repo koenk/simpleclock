@@ -88,6 +88,17 @@ int main(void)
 
     sei();
 
+#if 0
+    while (1) {
+        pin_write(PIN_LED1, 0);
+        pin_write(PIN_LED2, 1);
+        _delay_ms(500);
+        pin_write(PIN_LED1, 1);
+        pin_write(PIN_LED2, 0);
+        _delay_ms(500);
+    }
+#endif
+
     while (1) {
         sleep_mode();
         _delay_ms(10);
