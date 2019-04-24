@@ -6,6 +6,7 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <avr/eeprom.h>
 
 #include "types.h"
 #include "pins.h"
@@ -19,7 +20,8 @@
 # define VERSION "undef"
 #endif
 
-static u8 display_brightness = 1; /* 0..7 */
+static u8 display_brightness_ee EEMEM = 1; /* 0..7 */
+static u8 display_brightness;
 
 void init(void)
 {
@@ -35,6 +37,8 @@ void init(void)
 
     EICRA = 1<<ISC11 | 0 << ISC10; /* INT1 falling edge */
     EIMSK = 1<<INT1; /* Enable external INT1 */
+
+    display_brightness = eeprom_read_byte(&display_brightness_ee);
 }
 
 void update_display_time(void)
@@ -59,6 +63,11 @@ void handle_command(char *msg)
     } else if (!strncmp(msg, "brightness ", 11)) {
         _delay_ms(10);
         display_brightness = atoi(&msg[11]) & 0x7;
+        eeprom_write_byte(&display_brightness_ee, display_brightness);
+        update_display_time();
+        LOG("Brightness %u/7", display_brightness);
+    } else if (!strcmp(msg, "getbrightness")) {
+        _delay_ms(10);
         LOG("Brightness %u/7", display_brightness);
     } else if (!strcmp(msg, "temp")) {
         rtc_read_temp(&temp);

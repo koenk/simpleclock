@@ -24,6 +24,7 @@ def main():
     subparsers.add_parser('get-temp')
     subparsers.add_parser('get-version')
     subparsers.add_parser('set-brightness').add_argument('brightness', type=int)
+    subparsers.add_parser('get-brightness')
 
     args = parser.parse_args()
 
@@ -39,6 +40,8 @@ def main():
         cmd = b'version'
     elif args.command == 'set-brightness':
         cmd = b'brightness %d' % args.brightness
+    elif args.command == 'get-brightness':
+        cmd = b'getbrightness'
 
     communicate(cmd, args.port, args.baud)
 
