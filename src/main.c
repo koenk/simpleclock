@@ -54,30 +54,30 @@ void handle_command(char *msg)
     struct rtc_temp temp;
     if (!strcmp(msg, "get")) {
         rtc_read_time(&time);
-        LOG("Current time %02u:%02u:%02u", time.hour, time.min, time.sec);
+        LOGF("Current time %02u:%02u:%02u", time.hour, time.min, time.sec);
     } else if (!strncmp(msg, "set ", 4)) {
         rtc_write_time_from_string(&msg[4]);
         rtc_read_time(&time);
         update_display_time();
-        LOG("Current time %02u:%02u:%02u", time.hour, time.min, time.sec);
+        LOGF("Current time %02u:%02u:%02u", time.hour, time.min, time.sec);
     } else if (!strncmp(msg, "brightness ", 11)) {
         _delay_ms(10);
         display_brightness = atoi(&msg[11]) & 0x7;
         eeprom_write_byte(&display_brightness_ee, display_brightness);
         update_display_time();
-        LOG("Brightness %u/7", display_brightness);
+        LOGF("Brightness %u/7", display_brightness);
     } else if (!strcmp(msg, "getbrightness")) {
         _delay_ms(10);
-        LOG("Brightness %u/7", display_brightness);
+        LOGF("Brightness %u/7", display_brightness);
     } else if (!strcmp(msg, "temp")) {
         rtc_read_temp(&temp);
-        LOG("Temperature %d.%u C", temp.temp, temp.fraction);
+        LOGF("Temp %d.%u C", temp.temp, temp.fraction);
     } else if (!strncmp(msg, "ver", 3)) {
         _delay_ms(10);
-        LOG("Version %s", VERSION);
+        LOGF("Version %s", VERSION);
     } else {
         _delay_ms(10);
-        LOG("Unknown command \"%s\"", msg);
+        LOGF("Unknown cmd \"%s\"", msg);
     }
 }
 
@@ -91,7 +91,7 @@ int main(void)
     rtc_enable_notifier();
     display_init();
 
-    uart_puts("*** Simpleclock initialized\r\n");
+    LOG("*** Simpleclock initialized");
     _delay_ms(1000);
     update_display_time();
 

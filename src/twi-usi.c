@@ -103,7 +103,7 @@ bool twi_start(u8 addr, bool do_read)
     /* Read ACK bit */
     pin_set_mode(PIN_TWI_SDA, INPUT);
     if (!transfer(1)) {
-        LOG("ERROR: No ACK for address %u\n", addr);
+        LOGF("ERROR: No ACK for address %u\n", addr);
         return false;
     }
 
@@ -129,7 +129,7 @@ bool twi_write(u8 data)
 
     pin_set_mode(PIN_TWI_SDA, INPUT);
     if (!transfer(1)) {
-        LOG("ERROR: No ack for sending %x", data);
+        LOGF("ERROR: No ack for sending %x", data);
         return false;
     }
     return true;

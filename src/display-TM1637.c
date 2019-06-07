@@ -35,7 +35,7 @@
  * (:) in the middle the dot is not available, and enabling the dot on the 2nd
  * digit turns on the colon.
  */
-static u8 segment_lut[] =
+static const u8 segment_lut[] PROGMEM =
 {
                   // P G F E D C B A
     [0x0] = 0x3f, // 0 0 1 1 1 1 1 1
@@ -56,7 +56,7 @@ static u8 segment_lut[] =
     [0xf] = 0x71, // 0 1 1 1 0 0 0 1
 };
 
-static u8 startup_state[] =
+static const u8 startup_state[] PROGMEM =
 {
           //    P G F E D C B A
     0x00, //    0 0 0 0 0 0 0 0
@@ -67,12 +67,15 @@ static u8 startup_state[] =
 
 void display_init(void)
 {
+    u8 segs[sizeof(startup_state)];
+
     pin_set_mode(PIN_DISP_CLK, INPUT);
     pin_set_mode(PIN_DISP_DIO, INPUT);
     pin_write(PIN_DISP_CLK, 0);
     pin_write(PIN_DISP_DIO, 0);
 
-    display_setsegs(startup_state, 1);
+    memcpy_P(segs, startup_state, sizeof(startup_state));
+    display_setsegs(segs, 1);
 }
 
 static void disp_delay(void)
@@ -153,7 +156,7 @@ void display_shownum(u16 num, bool colon, u8 brightness)
     for (u8 i = 0; i < DISPLAY_NUM_DIGITS; i++) {
         u8 pos = DISPLAY_NUM_DIGITS - i - 1;
         u8 digit = num % 10;
-        segs[pos] = segment_lut[digit];
+        segs[pos] = pgm_read_byte(&segment_lut[digit]);
 
         if (colon && (pos == 2 || pos == 3))
             segs[pos] |= 0x80;

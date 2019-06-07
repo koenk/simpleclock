@@ -2,14 +2,24 @@
 #define UART_H
 
 #include <stdio.h>
+#include <avr/pgmspace.h>
 
 typedef void (*uart_recv_cb_t)(char *msg);
 
 extern FILE uart_fd;
 
-#define LOG(msg, ...) \
+#define LOG(msg) \
     do { \
-        fprintf(&uart_fd, msg "\r\n", ## __VA_ARGS__); \
+        char ___logbuf[sizeof(msg) + 2]; \
+        strcpy_P(___logbuf, PSTR(msg "\r\n")); \
+        uart_puts(___logbuf); \
+    } while (0)
+
+#define LOGF(msg, ...) \
+    do { \
+        char ___logbuf[sizeof(msg) + 2]; \
+        strcpy_P(___logbuf, PSTR(msg "\r\n")); \
+        fprintf(&uart_fd, ___logbuf, ## __VA_ARGS__); \
     } while (0)
 
 void uart_init(void);
