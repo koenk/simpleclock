@@ -7,6 +7,6 @@
 
 void display_init(void);
 void display_setsegs(u8 segs[DISPLAY_NUM_DIGITS], u8 brightness);
-void display_shownum(u16 num, bool colon, u8 brightness);
+void display_shownum(u16 num, bool colon, bool pad, u8 brightness);
 
 #endif

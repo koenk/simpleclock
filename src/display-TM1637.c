@@ -149,19 +149,32 @@ void display_setsegs(u8 segs[DISPLAY_NUM_DIGITS], u8 brightness)
     end_command();
 }
 
-void display_shownum(u16 num, bool colon, u8 brightness)
+void display_shownum(u16 num, bool colon, bool pad, u8 brightness)
 {
     u8 segs[DISPLAY_NUM_DIGITS];
+    u8 last_nonzero = 3;
 
     for (u8 i = 0; i < DISPLAY_NUM_DIGITS; i++) {
         u8 pos = DISPLAY_NUM_DIGITS - i - 1;
         u8 digit = num % 10;
+
         segs[pos] = pgm_read_byte(&segment_lut[digit]);
+
+        if (digit > 0)
+            last_nonzero = pos;
+
 
         if (colon && (pos == 2 || pos == 3))
             segs[pos] |= 0x80;
         num /= 10;
     }
+
+    if (!pad) {
+        u8 zero_segs = pgm_read_byte(&segment_lut[0]);
+        for (u8 i = 0; i < last_nonzero; i++)
+            segs[i] &= ~zero_segs;
+    }
+
 
     display_setsegs(segs, brightness);
 }

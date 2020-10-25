@@ -13,6 +13,20 @@ def communicate(cmd, port, baudrate):
         ser.readline()  # Command we sent
         print(ser.readline().decode('utf-8').strip())
 
+def datetime(s):
+    try:
+        time.strptime(s, "%d-%m-%Y")
+        s += " 00:00:00"
+    except ValueError as e:
+        pass
+    try:
+        dt = time.strptime(s, "%d-%m-%Y %H:%M:%S")
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(str(e))
+    if dt.tm_year < 1900 or dt.tm_year > 2099:
+        raise argparse.ArgumentTypeError('Year must be between 1900 and 2100.')
+    return s
+
 def main():
     parser = argparse.ArgumentParser(description='Control SimpleClock via UART')
     parser.add_argument('-p', '--port', nargs=1, default=DEFAULT_PORT)
@@ -21,27 +35,35 @@ def main():
     subparsers.required = True
     subparsers.add_parser('set-time')
     subparsers.add_parser('get-time')
-    subparsers.add_parser('get-temp')
-    subparsers.add_parser('get-version')
+    subparsers.add_parser('set-date')
+    subparsers.add_parser('get-date')
+    subparsers.add_parser('enable-datediff')
+    subparsers.add_parser('disable-datediff')
+    subparsers.add_parser('set-datediff').add_argument('target', type=datetime)
+    subparsers.add_parser('get-datediff')
     subparsers.add_parser('set-brightness').add_argument('brightness', type=int)
     subparsers.add_parser('get-brightness')
+    subparsers.add_parser('get-temp')
+    subparsers.add_parser('get-version')
 
     args = parser.parse_args()
 
-    cmd = b''
-    if args.command == 'set-time':
-        curtime = time.strftime('%H:%M:%S')
-        cmd = b'set ' + curtime.encode('utf-8')
-    elif args.command == 'get-time':
-        cmd = b'get'
-    elif args.command == 'get-temp':
-        cmd = b'temp'
-    elif args.command == 'get-version':
-        cmd = b'version'
-    elif args.command == 'set-brightness':
-        cmd = b'brightness %d' % args.brightness
-    elif args.command == 'get-brightness':
-        cmd = b'getbrightness'
+    cmds = {
+        'set-time': 'ts ' + time.strftime('%H:%M:%S'),
+        'get-time': 'tg',
+        'set-date': 'ds ' + time.strftime('%d:%m:%Y'),
+        'get-date': 'dg',
+        'enable-datediff': 'dde 1',
+        'disable-datediff': 'dde 0',
+        'set-datediff': 'dds ' + getattr(args, 'target', ''),
+        'get-datediff': 'ddg',
+        'set-brightness': 'bs %d' % getattr(args, 'brightness', 0),
+        'get-brightness': 'bg',
+        'get-temp': 'temp',
+        'get-version': 'ver'
+    }
+
+    cmd = cmds[args.command].encode('utf-8')
 
     communicate(cmd, args.port, args.baud)
 

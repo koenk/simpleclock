@@ -14,7 +14,7 @@ OBJS = $(patsubst %.c,%.o,$(SOURCES))
 
 GIT_VERSION := $(shell git describe --dirty="M" --tags --always 2>/dev/null || echo "nogit")
 
-CFLAGS = -g -Os -Wall -Wextra -mmcu=$(MCU) -DF_CPU=$(CLOCKRATE)UL \
+CFLAGS = -Os -Wall -Wextra -mmcu=$(MCU) -DF_CPU=$(CLOCKRATE)UL \
 		 -DVERSION=\"$(GIT_VERSION)\"
 LDFLAGS = -Os -mmcu=$(MCU)
 

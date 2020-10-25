@@ -54,12 +54,7 @@ static inline u8 bcd_encode(u8 dec)
     return ((dec / 10) << 4) | (dec % 10);
 }
 
-static inline u8 asc_decode(const char *s)
-{
-    return (s[0] - '0') * 10 + s[1] - '0';
-}
-
-void rtc_read_time(struct rtc_time *ret)
+void rtc_read_time(struct time *ret)
 {
     u8 h, m, s;
 
@@ -77,7 +72,7 @@ void rtc_read_time(struct rtc_time *ret)
     ret->hour = bcd_decode(h);
 }
 
-void rtc_write_time(struct rtc_time *time)
+void rtc_write_time(struct time *time)
 {
     twi_start(TWI_ADDR, false);
     twi_write(REG_TIME_SEC);
@@ -87,13 +82,47 @@ void rtc_write_time(struct rtc_time *time)
     twi_stop();
 }
 
-void rtc_write_time_from_string(const char *s)
+void rtc_read_date(struct date *ret)
 {
-    struct rtc_time time;
-    time.hour = asc_decode(s);
-    time.min = asc_decode(&s[3]);
-    time.sec = asc_decode(&s[6]);
-    rtc_write_time(&time);
+    u8 d, m, y;
+
+    twi_start(TWI_ADDR, false);
+    twi_write(REG_DATE_DAY);
+
+    twi_start(TWI_ADDR, true);
+    d = twi_read(false);
+    m = twi_read(false);
+    y = twi_read(true);
+    twi_stop();
+
+    ret->day = bcd_decode(d);
+    ret->month = bcd_decode(m & 0x7f);
+    ret->year = bcd_decode(y);
+    ret->year += 1900;
+    if (m & 0x80)
+        ret->year += 100;
+}
+
+void rtc_write_date(struct date *date)
+{
+    u8 d, m, y;
+    u16 year;
+
+    d = bcd_encode(date->day);
+    m = bcd_encode(date->month);
+    year = date->year - 1900;
+    if (year > 100) {
+        m |= 0x80;
+        year -= 100;
+    }
+    y = bcd_encode(year);
+
+    twi_start(TWI_ADDR, false);
+    twi_write(REG_DATE_DAY);
+    twi_write(d);
+    twi_write(m);
+    twi_write(y);
+    twi_stop();
 }
 
 void rtc_read_temp(struct rtc_temp *ret)
